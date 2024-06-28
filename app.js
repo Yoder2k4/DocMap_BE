@@ -28,8 +28,8 @@ const app = express();
 app.use(express.json());
 app.use(
 	cors({
-		origin: ['https://docmap-fe.vercel.app/', 'https://docmap-fe-yash-sharmas-projects-e4333b95.vercel.app/'],
-		default: 'https://docmap-fe.vercel.app/',
+		origin: ['https://docmap-fe.vercel.app', 'https://docmap-fe-yash-sharmas-projects-e4333b95.vercel.app'],
+		default: 'https://docmap-fe.vercel.app',
 		credentials: true,
 		method: 'GET, POST, PUT, DELETE',
 	}),
