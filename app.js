@@ -33,7 +33,7 @@ app.use(
 		credentials: true,
 		method: 'GET, POST, PUT, DELETE',
 	}),
-// );
+);
 
 
 const sessionConfig = {

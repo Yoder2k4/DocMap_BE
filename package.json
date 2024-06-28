@@ -4,10 +4,11 @@
 	"description": "MERN Project",
 	"main": "app.js",
 	"engines" : {
-		"node" : "14.x"
+		"node" : "20.x"
 	},
 	"scripts": {
-		"start": "node app.js"
+		"start": "node app.js",
+		"dev" : "nodemon app.js"
 	},
 	"author": "Yoder2k4",
 	"license": "ISC",
