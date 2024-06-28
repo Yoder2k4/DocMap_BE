@@ -74,8 +74,7 @@ app.use((req, res, next) => {
 // =================================================================================================================
 
 app.get('/check-auth', (req, res) => {
-	console.log('req.isAuthenticated(): ', req.isAuthenticated());
-	res.json({ isAuthenticated: req.isAuthenticated() });
+	res.json({ message: "hi there" });
 });
 
 // -------------------------------------------------- PATIENT -------------------------------------------------------
