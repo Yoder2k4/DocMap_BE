@@ -28,13 +28,12 @@ const app = express();
 app.use(express.json());
 app.use(
 	cors({
-		origin: ['https://docmap-fe.vercel.app', 'https://docmap-fe-yash-sharmas-projects-e4333b95.vercel.app'],
-		default: 'https://docmap-fe.vercel.app',
+		origin: true,
+		allowedHeaders: ['Content-Type'],
 		credentials: true,
-		method: 'GET, POST, PUT, DELETE',
+		method: ['GET', 'POST', 'PUT', 'DELETE'],
 	}),
 );
-
 
 const sessionConfig = {
 	secret: 'ThisIsaSecret',
@@ -87,9 +86,7 @@ app.use('/review', reviewRoutes);
 
 app.use('/appointment', appointmentRoutes);
 
-//
-const PORT = process.env.PORT || 3001
 
-app.listen(PORT, () => {
-	console.log('============ LISTENING TO PORT 3001 =============');
+app.listen(process.env.PORT, () => {
+	console.log(`============ LISTENING TO PORT ${process.env.PORT} =============`);
 });
