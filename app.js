@@ -35,6 +35,7 @@ app.use(
 	}),
 );
 
+
 const sessionConfig = {
 	secret: 'ThisIsaSecret',
 	resave: false,
