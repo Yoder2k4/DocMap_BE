@@ -88,7 +88,8 @@ app.use('/review', reviewRoutes);
 app.use('/appointment', appointmentRoutes);
 
 //
+const PORT = process.env.PORT || 3001
 
-app.listen(3001, () => {
+app.listen(PORT, () => {
 	console.log('============ LISTENING TO PORT 3001 =============');
 });
