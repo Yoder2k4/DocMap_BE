@@ -39,8 +39,6 @@ module.exports.registerPatient = async (req, res) => {
 module.exports.loginPatient = async (req, res) => {
 	try {
 		const { email, password } = req.body;
-		console.log("email: ", email);
-		console.log("password: ", password);
 		if (!(email && password))
 			throw new Error('Email or password not provided!');
 		const patientAcc = await PatientUser.findOne({ email });
@@ -53,8 +51,6 @@ module.exports.loginPatient = async (req, res) => {
 			process.env.tokenSecretKey,
 			{ expiresIn: 24 * 60 * 60 },
 		);
-		console.log(process.env.tokenSecretKey);
-		console.log(token);
 		const options = {
 			expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
 			httpOnly: true,

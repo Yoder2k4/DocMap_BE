@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 module.exports = async (req, res, next) => {
     try {
-        console.log(req.route.path);
+        console.log(req);
         const {token} = req.cookies;
         console.log("token: ", token);
         if(!token) throw new Error('You are not authorized to access this route!');
