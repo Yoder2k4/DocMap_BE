@@ -3,7 +3,9 @@ const doctorUser = require('../models/doctorUser');
 
 module.exports = async (req, res, next) => {
     try {
+        console.log(req.route.path);
         const {doctorToken} = req.cookies;
+        console.log("doctorToken: ", doctorToken);
         if(!doctorToken) throw new Error('You are not authorized to access this route!');
         const verifiedToken = jwt.verify(doctorToken, process.env.tokenSecretKey);
         req.params.doctorID = verifiedToken.userID;

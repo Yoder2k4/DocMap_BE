@@ -2,7 +2,9 @@ const jwt = require('jsonwebtoken');
 
 module.exports = async (req, res, next) => {
     try {
+        console.log(req.route.path);
         const {token} = req.cookies;
+        console.log("token: ", token);
         if(!token) throw new Error('You are not authorized to access this route!');
         const verifiedToken = jwt.verify(token, process.env.tokenSecretKey);
         req.params.patientID = verifiedToken.userID;
