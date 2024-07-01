@@ -29,6 +29,7 @@ module.exports.registerPatient = async (req, res) => {
 		const options = {
 			expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
 			httpOnly: true,
+			secure: (process.env.NODE_ENV==="production")
 		};
 		res.cookie('token', token, options).json({ success: true, userID: newUser._id });
 	} catch (err) {
@@ -54,6 +55,7 @@ module.exports.loginPatient = async (req, res) => {
 		const options = {
 			expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
 			httpOnly: true,
+			secure: (process.env.NODE_ENV==="production")
 		};
 		res.status(200).cookie('token', token, options).json({ success: true, userID: patientAcc._id });
 	} catch (err) {
