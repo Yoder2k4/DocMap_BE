@@ -1,15 +1,15 @@
+if (process.env.NODE_ENV !== 'production') {
+	require('dotenv').config();
+}
 const express = require('express');
 const mongoose = require('mongoose');
-const passport = require('passport');
-const LocalStrategy = require('passport-local');
-const PatientUser = require('./models/patientUser');
-const DoctorUser = require('./models/doctorUser');
-const session = require('express-session');
 const cors = require('cors');
 const doctorRoutes = require('./routes/doctorRoutes');
 const patientRoutes = require('./routes/patientRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
 
 // ==================================================================================================================
 
@@ -26,6 +26,7 @@ db.once('open', () => {
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(
 	cors({
 		origin: true,
@@ -35,45 +36,28 @@ app.use(
 	}),
 );
 
-const sessionConfig = {
-	secret: 'ThisIsaSecret',
-	resave: false,
-	saveUninitialized: true,
-	cookie: {
-		httpOnly: true,
-		expires: Date.now() + 1000 * 60 * 60 * 24 * 7,
-		maxAge: 1000 * 60 * 60 * 24 * 7,
-	},
-};
-
-app.use(session(sessionConfig));
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-passport.use(
-	'local-patient',
-	new LocalStrategy({ usernameField: 'email' }, PatientUser.authenticate()),
-);
-passport.serializeUser(PatientUser.serializeUser());
-passport.deserializeUser(PatientUser.deserializeUser());
-
-passport.use(
-	'local-doctor',
-	new LocalStrategy({ usernameField: 'email' }, DoctorUser.authenticate()),
-);
-passport.serializeUser(DoctorUser.serializeUser());
-passport.deserializeUser(DoctorUser.deserializeUser());
-
-app.use((req, res, next) => {
-	res.locals.currentUser = req.user;
-	next();
-});
-
 // =================================================================================================================
 
-app.get('/check-auth', (req, res) => {
-	res.json({ message: "hi there" });
+app.get('/checkAuth', async (req, res) => {
+	const {token, doctorToken} = req.cookies;
+	if(!token && !doctorToken) return res.json({auth: 0});
+	try {
+		const verifiedToken = jwt.verify(token, process.env.tokenSecretKey);
+		return res.json({auth: 1, userID: verifiedToken.userID});
+	} catch (err) {
+		console.log("Not a patient");
+	}
+	try {
+		jwt.verify(doctorToken, process.env.tokenSecretKey);
+		return res.json({auth: 2});
+	} catch (err) {
+		console.log("Not a doctor");
+	}
+	return res.cookie('token', 'none').cookie('doctorToken', 'none').json({auth: 0});
+});
+
+app.get('/logout', (req, res) => {
+	res.status(200).cookie('token', 'none').cookie('doctorToken', 'none').json({'message': "Successfully logged out"});
 });
 
 // -------------------------------------------------- PATIENT -------------------------------------------------------

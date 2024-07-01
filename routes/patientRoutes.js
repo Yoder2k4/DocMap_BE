@@ -1,26 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const passport = require('passport');
 const {
 	registerPatient,
 	loginPatient,
-	loginFailRoute,
 	getAllDoctors,
+	getDoctor
 } = require('../controllers/patientControllers');
+const patientAuth = require('../middleware/patientAuth');
 
 router.route('/register').post(registerPatient);
-
-router
-	.route('/login')
-	.post(
-		passport.authenticate('local-patient', {
-			failureRedirect: '/patient/login',
-			keepSessionInfo: true,
-		}),
-		loginPatient,
-	)
-	.get(loginFailRoute);
-
-router.route('/user').get(getAllDoctors);
+router.route('/login').post(loginPatient);
+router.route('/user').get(patientAuth, getAllDoctors);
+router.route('/doctor/:doctorID').get(patientAuth, getDoctor);
 
 module.exports = router;

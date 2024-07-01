@@ -1,63 +1,104 @@
 const DoctorUser = require('../models/doctorUser');
 const DoctorDetails = require('../models/doctorDetails');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 module.exports.registerDoctor = async (req, res) => {
-	const { email, password } = req.body;
-	const user = new DoctorUser({ email });
-	const registeredUser = await DoctorUser.register(user, password);
-	req.login(registeredUser, (err) => {
-		if (err) {
-			return res.send(err);
-		}
-		res.json(registeredUser);
-	});
+	try {
+		const { email, password } = req.body;
+		if(!(email && password)) throw new Error('All credentials required');
+		const searchUser = await DoctorUser.findOne({ email });
+		if (searchUser) throw new Error('User already exists');
+		const hashedPassword = await bcrypt.hash(password, 10);
+		const newUser = await DoctorUser.create({
+			email,
+			password: hashedPassword,
+		});
+		const token = jwt.sign(
+			{ email, userID: newUser._id },
+			process.env.tokenSecretKey,
+			{ expiresIn: 24 * 60 * 60 },
+		);
+		const options = {
+			expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+			httpOnly: true,
+		};
+		res.status(200).cookie('doctorToken', token, options).json({success: true});
+	} catch (err) {
+		res.status(400).json({ message: err.message });
+	}
 };
 
 module.exports.loginDoctor = async (req, res) => {
-	const { email } = req.body;
-	console.log(email);	
-	const doctorAcc = await DoctorUser.findOne({ email });
-	res.json(doctorAcc);
-};
-
-module.exports.loginFailRoute = (req, res) => {
-	res.redirect('http://localhost:3000/doctor/login');
+	try {
+		const { email, password } = req.body;
+		if(!(email && password)) throw new Error('All credentials required');
+		const doctorAcc = await DoctorUser.findOne({ email });
+		if(!doctorAcc || !(await bcrypt.compare(password, doctorAcc.password))) throw new Error('Invalid credentials');
+		const token = jwt.sign(
+			{ email, userID: doctorAcc._id },
+			process.env.tokenSecretKey,
+			{ expiresIn: 24 * 60 * 60 },
+		);
+		const options = {
+			expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+			httpOnly: true,
+		};
+		if(!doctorAcc.accID) return res.status(304).cookie('doctorToken', token, options).json({redirect : true});
+		res.status(200).cookie('doctorToken', token, options).json({success: true});
+	} catch (err) {
+		res.status(400).json({"message": err.message});
+	}
 };
 
 module.exports.registerDoctorInfo = async (req, res) => {
-	const doctor = req.body;
-	const { id } = req.params;
-	doctor.doctorID = id;
-	const newDoctor = new DoctorDetails(doctor);
-	await newDoctor.save();
-	const DoctorAcc = await DoctorUser.findById(id);
-	DoctorAcc.accID = newDoctor._id;
-	await DoctorAcc.save();
-	res.json(newDoctor);
+	try {
+		const doctor = req.body;
+		const { doctorID } = req.params;
+		doctor.doctorID = doctorID;
+		const newDoctor = new DoctorDetails(doctor);
+		await newDoctor.save();
+		const DoctorAcc = await DoctorUser.findById(doctorID);
+		DoctorAcc.accID = newDoctor._id;
+		await DoctorAcc.save();
+		res.status(200).json(newDoctor);
+	} catch (err) {
+		res.status(400).json({"message": err.message});
+	}
+	
 };
 
 module.exports.getDoctorInfo = async (req, res) => {
-	const { id } = req.params;
-	const doctor = await DoctorDetails.findById(id);
-	res.json(doctor);
+	try {
+		const { doctorID } = req.params;
+		const doctor = await DoctorDetails.findOne({doctorID});
+		res.status(200).json(doctor);
+	} catch (err) {
+		res.status(400).json({"message": err.message});
+	}
+
 };
 
 module.exports.editDoctorProfile = async (req, res) => {
-	const { id } = req.params;
-	const doctor = req.body;
-	const response = await DoctorDetails.findByIdAndUpdate(
-		id,
-		{ ...doctor },
-		{ new: true },
-	);
-	res.json(response);
+	try {
+		const { doctorID } = req.params;
+		const doctor = req.body;
+		const response = await DoctorDetails.findOneAndUpdate({doctorID}, {...doctor}, {new: true});
+		res.status(200).json(response);
+	} catch (err) {
+		res.status(400).json({"message": err.message});
+	}
 };
 
 module.exports.deleteAcc = async (req, res) => {
-	const { id } = req.params;
-	const doctor = await DoctorUser.findById(id);
-	const accID = doctor.accID;
-	await DoctorUser.findByIdAndDelete(id);
-	const response = await DoctorDetails.findByIdAndDelete(accID);
-	res.json(response);
+	try {
+		const { doctorID } = req.params;
+		const doctor = await DoctorUser.findById(doctorID);
+		const accID = doctor.accID;
+		await DoctorUser.findByIdAndDelete(doctorID);
+		const response = await DoctorDetails.findByIdAndDelete(accID);
+		res.status(200).json(response);
+	} catch (err) {
+		res.status(400).json({"message": err.message});
+	}
 };

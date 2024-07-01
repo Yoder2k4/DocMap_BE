@@ -4,10 +4,11 @@ const {
 	getAllComments,
     deleteComment,
 } = require('../controllers/reviewControllers');
+const patientAuth = require('../middleware/patientAuth');
 const router = express.Router();
 
-router.route('/delete/:reviewId').delete(deleteComment);
-router.route('/:doctorId').get(getAllComments);
-router.route('/:userId/:doctorId').post(addComment);
+router.route('/delete/:reviewID').delete(deleteComment);
+router.route('/:doctorID').get(getAllComments);
+router.route('/:doctorID').post(patientAuth, addComment);
 
 module.exports = router;
